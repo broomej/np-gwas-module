@@ -44,7 +44,5 @@ rule gwas:
         """
 
 rule results_dir:
-    output:
-        directory("results")
-    shell:
-        "mkdir -p {output}"
+    output: directory("results")
+    shell: "mkdir -p {output}"
