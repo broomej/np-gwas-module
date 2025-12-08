@@ -1,12 +1,17 @@
-configfile: config.yaml
+configfile: "config.yaml"
 container: "docker://broome/genetics-tools:ACT-ROSMAP-NACC-meta"
 CHROMOSOMES = [str(i) for i in range(1, 23)]
+
 rule all:
     input:
         assoc_linear=expand("results/chr_{chr_num}_gwas.assoc.linear", chr_num=CHROMOSOMES),
-        adjusted=expand("results/chr_{chr_num}_gwas.assoc.adjusted", chr_num=CHROMOSOMES),
+        adjusted=expand("results/chr_{chr_num}_gwas.adjusted", chr_num=CHROMOSOMES),
         log=expand("results/chr_{chr_num}_gwas.log", chr_num=CHROMOSOMES),
+
 rule gwas:
+    threads: config.get("threads", 8)
+    resources:
+        mem_mb=config.get("mem_mb", 4000)
     input:
         bed=config["bfile"] + ".bed",
         bim=config["bfile"] + ".bim",
@@ -19,10 +24,10 @@ rule gwas:
         log="results/chr_{chr_num}_gwas.log",
     params:
         pheno_name=config["pheno_name"],
-        covar_names=config["covar_names"],
+        covar_names=", ".join(config["covar_names"]),
         missing_pheno=config["missing_pheno"],
         additional_args="--linear hide-covar --adjust --ci 0.95",
-    shell: 
+    shell:
         """
         plink \
             --bed {input.bed} \
@@ -37,3 +42,9 @@ rule gwas:
             {params.additional_args} \
             --out results/chr_{wildcards.chr_num}_gwas
         """
+
+rule results_dir:
+    output:
+        directory("results")
+    shell:
+        "mkdir -p {output}"
