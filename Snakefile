@@ -46,11 +46,6 @@ rule gwas:
             --out results/chr_{wildcards.chr_num}_gwas
         """
 
-rule results_dir:
-    output: directory("results")
-    shell: "mkdir -p {output}"
-
-
 rule gwas_vcf:
     threads: config.get("threads", 8)
     resources:
