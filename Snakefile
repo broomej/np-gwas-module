@@ -5,7 +5,7 @@ rule all:
     input:
         assoc_linear=expand("results/chr_{chr_num}_gwas.assoc.linear", chr_num=CHROMOSOMES),
         adjusted=expand("results/chr_{chr_num}_gwas.assoc.adjusted", chr_num=CHROMOSOMES),
-        log=expand("results/chr_{chr_num}_gwas.assoc.log", chr_num=CHROMOSOMES),
+        log=expand("results/chr_{chr_num}_gwas.log", chr_num=CHROMOSOMES),
 rule gwas:
     input:
         bed=config["bfile"] + ".bed",
@@ -35,5 +35,5 @@ rule gwas:
             --covar-name {params.covar_names} \
             --missing-phenotype {params.missing_pheno} \
             {params.additional_args} \
-            --out results/chr_{chr_num}_gwas
+            --out results/chr_{wildcards.chr_num}_gwas
         """
