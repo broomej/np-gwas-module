@@ -1,6 +1,7 @@
 configfile: "config.yaml"
 container: "docker://broome/genetics-tools:ACT-ROSMAP-NACC-meta"
 CHROMOSOMES = [str(i) for i in range(1, 23)]
+plink_exe = config.get("plink_exe", "plink1.9")
 
 # common arguments. Hard coded, _not_ supplied by config
 COMMON_ADDITIONAL_ARGS = "--linear hide-covar --adjust --ci 0.95 --noweb"
@@ -30,14 +31,14 @@ def _make_plink_cmd_bed(wildcards):
     bim = bfile_prefix + ".bim"
     fam = bfile_prefix + ".fam"
     out_prefix = f"results/chr_{wildcards.chr_num}"
-    return f"plink --bed {bed} --bim {bim} --fam {fam} --chr {wildcards.chr_num} {common} --out {out_prefix}"
+    return f"{plink_exe} --bed {bed} --bim {bim} --fam {fam} --chr {wildcards.chr_num} {common} --out {out_prefix}"
 
 
 def _make_plink_cmd_vcf(wildcards):
     common = _make_common_args()
     vcf = config["vcffile"].replace("{chr}", wildcards.chr_num)
     out_prefix = f"results/chr_{wildcards.chr_num}"
-    return f"plink --vcf {vcf} {common} --out {out_prefix}"
+    return f"{plink_exe} --vcf {vcf} {common} --out {out_prefix}"
 
 
 # Enforce mutual exclusivity: user must supply either bfile OR vcffile, but not both
@@ -69,7 +70,6 @@ rule gwas:
     threads: config.get("threads", 8)
     resources:
         mem_mib=config.get("mem_mib", 6000)
-
     input:
         lambda wildcards: (
             [
@@ -87,17 +87,13 @@ rule gwas:
             ]
             + ([config.get("covar_file")] if config.get("covar_file") else [])
         ),
-
     output:
         assoc_linear="results/chr_{chr_num}.assoc.linear",
         adjusted="results/chr_{chr_num}.adjusted",
         log="results/chr_{chr_num}.log",
-
     wildcard_constraints:
         chr_num="[0-9]+",
-
     params:
         cmd=lambda wildcards: _make_plink_cmd(wildcards),
-
     shell:
         "{params.cmd}"
