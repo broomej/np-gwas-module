@@ -2,6 +2,9 @@ configfile: "config.yaml"
 container: "docker://broome/genetics-tools:ACT-ROSMAP-NACC-meta"
 CHROMOSOMES = [str(i) for i in range(1, 23)]
 
+# When both bfile and vcf could produce the same output, prefer bfile (bed-based)
+ruleorder: bfile > vcf
+
 # common arguments. Hard coded, _not_ supplied by config
 COMMON_ADDITIONAL_ARGS = "--linear hide-covar --adjust --ci 0.95"
 COVAR_NAMES = ", ".join(config.get("covar_names", []))
@@ -27,18 +30,14 @@ def _make_plink_cmd_bed(wildcards, input):
 
 def _make_plink_cmd_vcf(wildcards, input):
     common = _make_common_args(input)
-    out_prefix = f"results/chr_{wildcards.chr_vcf}_vcf"
+    out_prefix = f"results/chr_{wildcards.chr_num}_vcf"
     return f"plink --vcf {input['vcf']} {common} --out {out_prefix}"
 
 rule all:
     input:
-        **{"assoc_linear": expand("results/chr_{chr_num}.assoc.linear", chr_num=CHROMOSOMES),
-           "adjusted": expand("results/chr_{chr_num}.adjusted", chr_num=CHROMOSOMES),
-           "log": expand("results/chr_{chr_num}.log", chr_num=CHROMOSOMES)}
-        if not config.get("use_vcf", False)
-        else {"vcf_assoc_linear": expand("results/chr_{chr_vcf}_vcf.assoc.linear", chr_vcf=CHROMOSOMES),
-              "vcf_adjusted": expand("results/chr_{chr_vcf}_vcf.adjusted", chr_vcf=CHROMOSOMES),
-              "vcf_log": expand("results/chr_{chr_vcf}_vcf.log", chr_vcf=CHROMOSOMES)}
+        assoc_linear=expand("results/chr_{chr_num}{suffix}.assoc.linear", chr_num=CHROMOSOMES, suffix="_vcf" if config.get("use_vcf", False) else ""),
+        adjusted=expand("results/chr_{chr_num}{suffix}.adjusted", chr_num=CHROMOSOMES, suffix="_vcf" if config.get("use_vcf", False) else ""),
+        log=expand("results/chr_{chr_num}{suffix}.log", chr_num=CHROMOSOMES, suffix="_vcf" if config.get("use_vcf", False) else ""),
 
 
 rule bfile:
@@ -72,20 +71,20 @@ rule vcf:
     resources:
         mem_mb=config.get("mem_mb", 4000)
     input:
-        vcf="vcf/chr_{chr_vcf}.vcf.gz",
+        vcf="vcf/chr_{chr_num}.vcf.gz",
         pheno_file=config["pheno_file"],
         covar_file=config["covar_file"],
     output:
-        assoc_linear="results/chr_{chr_vcf}_vcf.assoc.linear",
-        adjusted="results/chr_{chr_vcf}_vcf.adjusted",
-        log="results/chr_{chr_vcf}_vcf.log",
+        assoc_linear="results/chr_{chr_num}_vcf.assoc.linear",
+        adjusted="results/chr_{chr_num}_vcf.adjusted",
+        log="results/chr_{chr_num}_vcf.log",
     wildcard_constraints:
-        chr_vcf="[0-9]+",
+        chr_num="[0-9]+",
     params:
         pheno_name=config["pheno_name"],
         missing_pheno=config["missing_pheno"],
         additional_args=COMMON_ADDITIONAL_ARGS,
-        out_prefix=lambda wildcards: f"results/chr_{wildcards.chr_vcf}_vcf",
+        out_prefix=lambda wildcards: f"results/chr_{wildcards.chr_num}",
         cmd=lambda wildcards, input: _make_plink_cmd_vcf(wildcards, input),
     shell:
         "{params.cmd}"

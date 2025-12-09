@@ -1,8 +1,8 @@
 config.yaml
 *.bak
-dag.pdf
-dag.svg
-dag.png
+*.pdf
+*.svg
+*.png
 .snakemake
 *.vcf
 *.vcf.gz
