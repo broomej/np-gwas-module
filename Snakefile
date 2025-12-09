@@ -2,12 +2,12 @@ configfile: "config.yaml"
 container: "docker://broome/genetics-tools:ACT-ROSMAP-NACC-meta"
 CHROMOSOMES = [str(i) for i in range(1, 23)]
 
-# Centralized constants/helpers (evaluated at parse time)
+# common arguments. Hard coded, _not_ supplied by config
 COMMON_ADDITIONAL_ARGS = "--linear hide-covar --adjust --ci 0.95"
 COVAR_NAMES = ", ".join(config.get("covar_names", []))
 
+# Construct arguments common to both BED and VCF commands
 def _make_common_args(input):
-    # Read static values from config at parse time
     pheno_name = config["pheno_name"]
     missing_pheno = config["missing_pheno"]
     additional_args = COMMON_ADDITIONAL_ARGS
@@ -22,28 +22,29 @@ def _make_common_args(input):
 
 def _make_plink_cmd_bed(wildcards, input):
     common = _make_common_args(input)
-    out_prefix = f"results/chr_{wildcards.chr_num}_gwas"
+    out_prefix = f"results/chr_{wildcards.chr_num}"
     return f"plink --bed {input['bed']} --bim {input['bim']} --fam {input['fam']} --chr {wildcards.chr_num} {common} --out {out_prefix}"
 
 def _make_plink_cmd_vcf(wildcards, input):
     common = _make_common_args(input)
-    out_prefix = f"results/chr_{wildcards.chr_vcf}_vcf_gwas"
+    out_prefix = f"results/chr_{wildcards.chr_vcf}_vcf"
     return f"plink --vcf {input['vcf']} {common} --out {out_prefix}"
 
 rule all:
     input:
-        assoc_linear=expand("results/chr_{chr_num}_gwas.assoc.linear", chr_num=CHROMOSOMES),
-        adjusted=expand("results/chr_{chr_num}_gwas.adjusted", chr_num=CHROMOSOMES),
-        log=expand("results/chr_{chr_num}_gwas.log", chr_num=CHROMOSOMES),
-        vcf_assoc_linear=expand("results/chr_{chr_vcf}_vcf_gwas.assoc.linear", chr_vcf=CHROMOSOMES),
-        vcf_adjusted=expand("results/chr_{chr_vcf}_vcf_gwas.adjusted", chr_vcf=CHROMOSOMES),
-        vcf_log=expand("results/chr_{chr_vcf}_vcf_gwas.log", chr_vcf=CHROMOSOMES),
+        **{"assoc_linear": expand("results/chr_{chr_num}.assoc.linear", chr_num=CHROMOSOMES),
+           "adjusted": expand("results/chr_{chr_num}.adjusted", chr_num=CHROMOSOMES),
+           "log": expand("results/chr_{chr_num}.log", chr_num=CHROMOSOMES)}
+        if not config.get("use_vcf", False)
+        else {"vcf_assoc_linear": expand("results/chr_{chr_vcf}_vcf.assoc.linear", chr_vcf=CHROMOSOMES),
+              "vcf_adjusted": expand("results/chr_{chr_vcf}_vcf.adjusted", chr_vcf=CHROMOSOMES),
+              "vcf_log": expand("results/chr_{chr_vcf}_vcf.log", chr_vcf=CHROMOSOMES)}
 
 
-rule gwas:
+rule bfile:
     threads: config.get("threads", 8)
     resources:
-        mem_mb=config.get("mem_mb", 4000)
+        mem_mb=config.get("mem_mb", 8000)
     input:
         bed=config["bfile"] + ".bed",
         bim=config["bfile"] + ".bim",
@@ -51,22 +52,22 @@ rule gwas:
         pheno_file=config["pheno_file"],
         covar_file=config["covar_file"],
     output:
-        assoc_linear="results/chr_{chr_num}_gwas.assoc.linear",
-        adjusted="results/chr_{chr_num}_gwas.adjusted",
-        log="results/chr_{chr_num}_gwas.log",
+        assoc_linear="results/chr_{chr_num}.assoc.linear",
+        adjusted="results/chr_{chr_num}.adjusted",
+        log="results/chr_{chr_num}.log",
     wildcard_constraints:
         chr_num="[0-9]+",
     params:
         pheno_name=config["pheno_name"],
         missing_pheno=config["missing_pheno"],
         additional_args=COMMON_ADDITIONAL_ARGS,
-        out_prefix=lambda wildcards: f"results/chr_{wildcards.chr_num}_gwas",
+        out_prefix=lambda wildcards: f"results/chr_{wildcards.chr_num}",
         cmd=lambda wildcards, input: _make_plink_cmd_bed(wildcards, input),
     shell:
         "{params.cmd}"
 
 
-rule gwas_vcf:
+rule vcf:
     threads: config.get("threads", 8)
     resources:
         mem_mb=config.get("mem_mb", 4000)
@@ -75,16 +76,16 @@ rule gwas_vcf:
         pheno_file=config["pheno_file"],
         covar_file=config["covar_file"],
     output:
-        assoc_linear="results/chr_{chr_vcf}_vcf_gwas.assoc.linear",
-        adjusted="results/chr_{chr_vcf}_vcf_gwas.adjusted",
-        log="results/chr_{chr_vcf}_vcf_gwas.log",
+        assoc_linear="results/chr_{chr_vcf}_vcf.assoc.linear",
+        adjusted="results/chr_{chr_vcf}_vcf.adjusted",
+        log="results/chr_{chr_vcf}_vcf.log",
     wildcard_constraints:
         chr_vcf="[0-9]+",
     params:
         pheno_name=config["pheno_name"],
         missing_pheno=config["missing_pheno"],
         additional_args=COMMON_ADDITIONAL_ARGS,
-        out_prefix=lambda wildcards: f"results/chr_{wildcards.chr_vcf}_vcf_gwas",
+        out_prefix=lambda wildcards: f"results/chr_{wildcards.chr_vcf}_vcf",
         cmd=lambda wildcards, input: _make_plink_cmd_vcf(wildcards, input),
     shell:
         "{params.cmd}"
