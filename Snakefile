@@ -4,7 +4,7 @@ CHROMOSOMES = [str(i) for i in range(1, 23)]
 
 # common arguments. Hard coded, _not_ supplied by config
 COMMON_ADDITIONAL_ARGS = "--linear hide-covar --adjust --ci 0.95 --noweb"
-COVAR_NAMES = ", ".join(config.get("covar_names", []))
+COVAR_NAMES = ",".join(config.get("covar_names", []))
 
 # Construct arguments common to both BED and VCF commands. Read pheno/covar from config
 def _make_common_args():
@@ -68,7 +68,7 @@ rule all:
 rule gwas:
     threads: config.get("threads", 8)
     resources:
-        mem_mb=config.get("mem_mb", 8000)
+        mem_mib=config.get("mem_mib", 6000)
 
     input:
         lambda wildcards: (
@@ -97,7 +97,7 @@ rule gwas:
         chr_num="[0-9]+",
 
     params:
-        cmd=lambda wildcards, input: _make_plink_cmd(wildcards),
+        cmd=lambda wildcards: _make_plink_cmd(wildcards),
 
     shell:
         "{params.cmd}"

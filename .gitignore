@@ -17,3 +17,4 @@ config.yaml
 *.assoc.linear
 *.assoc.adjusted
 results/
+data/
