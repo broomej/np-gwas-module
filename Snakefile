@@ -3,7 +3,7 @@ container: "docker://broome/genetics-tools:ACT-ROSMAP-NACC-meta"
 CHROMOSOMES = [str(i) for i in range(1, 23)]
 
 # common arguments. Hard coded, _not_ supplied by config
-COMMON_ADDITIONAL_ARGS = "--linear hide-covar --adjust --ci 0.95"
+COMMON_ADDITIONAL_ARGS = "--linear hide-covar --adjust --ci 0.95 --noweb"
 COVAR_NAMES = ", ".join(config.get("covar_names", []))
 
 # Construct arguments common to both BED and VCF commands. Read pheno/covar from config
