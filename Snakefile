@@ -33,9 +33,15 @@ def _make_plink_cmd_vcf(wildcards, input):
     return f"plink --vcf {input['vcf']} {common} --out {out_prefix}"
 
 
-# Conditionally define targets based on which input is configured
+# Enforce mutual exclusivity: user must supply either bfile OR vcffile, but not both
 USE_BFILE = "bfile" in config
 USE_VCF = "vcffile" in config
+
+if USE_BFILE and USE_VCF:
+    raise ValueError("Error: supply either 'bfile' or 'vcffile' in config.yaml, not both")
+if not USE_BFILE and not USE_VCF:
+    raise ValueError("Error: must supply either 'bfile' or 'vcffile' in config.yaml")
+
 
 rule all:
     input:
