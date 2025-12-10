@@ -17,7 +17,7 @@ rule all:
         log=expand("results/chr{chr_num}.log", chr_num=CHROMOSOMES),
 
 rule gwas:
-    threads: config.get("threads", 8)
+    threads: 1
     resources:
         mem_mib=config.get("mem_mib", 6000),
     input:
