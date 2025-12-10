@@ -29,8 +29,6 @@ rule gwas:
         assoc_linear="results/chr{chr_num}.assoc.linear",
         adjusted="results/chr{chr_num}.assoc.linear.adjusted",
         log="results/chr{chr_num}.log",
-    wildcard_constraints:
-        chr_num="[0-9]+",
     params:
         additional_args=ADDITIONAL_ARGS,
         covar_names=COVAR_NAMES,
