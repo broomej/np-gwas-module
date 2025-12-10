@@ -13,7 +13,7 @@ CHROMOSOMES = [str(i) for i in range(1, 23)]
 rule all:
     input:
         assoc_linear=expand("results/chr{chr_num}.assoc.linear", chr_num=CHROMOSOMES),
-        adjusted=expand("results/chr{chr_num}.adjusted", chr_num=CHROMOSOMES),
+        adjusted=expand("results/chr{chr_num}.assoc.linear.adjusted", chr_num=CHROMOSOMES),
         log=expand("results/chr{chr_num}.log", chr_num=CHROMOSOMES),
 
 rule gwas:
@@ -27,7 +27,7 @@ rule gwas:
         covar=config["covar_file"],
     output:
         assoc_linear="results/chr{chr_num}.assoc.linear",
-        adjusted="results/chr{chr_num}.adjusted",
+        adjusted="results/chr{chr_num}.assoc.linear.adjusted",
         log="results/chr{chr_num}.log",
     wildcard_constraints:
         chr_num="[0-9]+",
