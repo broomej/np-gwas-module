@@ -15,7 +15,7 @@ rule gwas:
             --adjust \
             --ci 0.95 \
             --geno 0.1 \
-            --maf 0.01
+            --maf 0.01 \
             --chr {wildcards.chromosome} \
             --out results/chr{wildcards.chromosome}
         """
