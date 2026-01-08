@@ -8,7 +8,7 @@ rule gwas:
             --pheno {input.pheno} \
             --pheno-name {params.pheno_name} \
             --covar {input.covar} \
-            --covar-name {COVAR_NAMES} \
+            --covar-name {params.covar_names} \
             --missing-phenotype {params.missing_pheno} \
             {params.additional_args} \
             --linear hide-covar \
@@ -16,6 +16,6 @@ rule gwas:
             --ci 0.95 \
             --geno 0.1 \
             --maf 0.01
-            --chr {wildcards.chr_num} \
-            --out results/chr{wildcards.chr_num}
+            --chr {wildcards.chromosome} \
+            --out results/chr{wildcards.chromosome}
         """
