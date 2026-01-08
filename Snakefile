@@ -2,7 +2,8 @@ configfile: "config.yaml"
 container: "docker://broome/genetics-tools:ACT-ROSMAP-NACC-meta"
 
 COVAR_NAMES = ",".join(config.get("covar_names", []))
-# Hard-coded args common across all study-level GWAS.
+# Hard-coded args common across all study-level GWAS. Use relatively relaxed
+# thresholds here; stricter filtering can be done before meta-analysis.
 ADDITIONAL_ARGS = "--linear hide-covar --adjust --ci 0.95 --geno 0.1 --maf 0.01 --noweb"
 # Defaults to `plink` because that is the name of the executable in the
 # container, but it may be `plink1.9` on some systems. PLINK v1.07 is not
