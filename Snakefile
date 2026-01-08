@@ -26,6 +26,7 @@ rule gwas:
         bim=config["bim"],
         fam=config["fam"],
         covar=config["covar_file"],
+        pheno=config["pheno"],
     output:
         assoc_linear="results/chr{chr_num}.assoc.linear",
         adjusted="results/chr{chr_num}.assoc.linear.adjusted",
@@ -34,15 +35,19 @@ rule gwas:
         additional_args=ADDITIONAL_ARGS,
         covar_names=COVAR_NAMES,
         missing_pheno=config.get("missing_pheno", "-9"),
+        pheno_name=config["pheno_name"],
     shell:
         """
         {plink_exe} \
             --bed {input.bed} \
             --bim {input.bim} \
             --fam {input.fam} \
+            --pheno {input.pheno} \
+            --pheno-name {params.pheno_name} \
             --covar {input.covar} \
             --covar-name {COVAR_NAMES} \
             {params.additional_args} \
+            --missing-phenotype {params.missing_pheno} \
             --chr {wildcards.chr_num} \
             --out results/chr{wildcards.chr_num}
         """
