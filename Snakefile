@@ -1,4 +1,20 @@
 rule gwas:
+    input:
+        bed=config["bed"],
+        bim=config["bim"],
+        fam=config["fam"],
+        covar=config["covar_file"],
+        pheno=config["pheno"],
+    params:
+        pheno_name=config["pheno_name"],
+        covar_names=",".join(config.get("covar_names", [])),
+        missing_pheno=config["missing_pheno"],
+        additional_args=config.get("additional_plink_args", ""),
+        plink_exe=config["plink_exe"],
+    output:
+        assoc_linear="results/chr{chromosome}.assoc.linear",
+        adjusted="results/chr{chromosome}.assoc.linear.adjusted",
+        log="results/chr{chromosome}.log"
     shell:
         """
         {params.plink_exe} \
