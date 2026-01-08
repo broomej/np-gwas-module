@@ -1,7 +1,7 @@
 rule gwas:
     shell:
         """
-        {plink_exe} \
+        {params.plink_exe} \
             --bed {input.bed} \
             --bim {input.bim} \
             --fam {input.fam} \
