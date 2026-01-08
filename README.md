@@ -18,9 +18,18 @@ module np_gwas_module:
     snakefile: github("broomej/np-gwas-module", path="Snakefile", tag = "v0.2")
     config: config
 
+rule all:
+    input:
+        assoc_linear=expand("results/gwas/chr{chromosome}.assoc.linear", chromosome=CHROMOSOMES),
+        adjusted=expand("results/gwas/chr{chromosome}.assoc.linear.adjusted", chromosome=CHROMOSOMES),
+        log=expand("results/gwas/chr{chromosome}.log", chromosome=CHROMOSOMES),
+
 use rule gwas from np_gwas_module
 ```
 
+* A rule that takes the outputs of rule gwas that expands the chromosome
+  wildcard is **_required_** due to how Snakemake handles dependencies and wildcard
+  expansion
 * Please include the `container: ` line, and invoke apptainer when
   executing this workflow.
 * Update the GitHub tag to the appropriate version.
