@@ -17,28 +17,24 @@ module np_gwas_module:
     snakefile: github("broomej/np-gwas-module", path="Snakefile", tag = "v1")
 
 CHROMOSOMES = [str(i) for i in range(1, 23)] + ["X"]
-use rule gwas from np_gwas_module with:
-    input:
-        bed=config["bed"],
-        bim=config["bim"],
-        fam=config["fam"],
-        covar=config["covar_file"],
-        pheno=config["pheno"],
-    params:
-        pheno_name=config["pheno_name"],
-        covar_names=",".join(config.get("covar_names", [])),
-        missing_pheno=config["missing_pheno"],
-        plink_exe=config["plink_exe"],
-        additional_args="--noweb",
-    output:
-        assoc_linear="results/chr{chromosome}.assoc.linear",
-        adjusted="results/chr{chromosome}.assoc.linear.adjusted",
-        log="results/chr{chromosome}.log",
+module np_gwas_module:
+    snakefile: github("broomej/np-gwas-module", path="Snakefile", branch = "main")
+    config: config
+
+use rule gwas from np_gwas_module
 ```
 
-* `params.additional_args`: This will be passed verbatim to PLINK. It can be
-  empty (i.e. `""`), but the parameter must be defined in order for Snakemake's
-  shell expansion to work.
+To supply inputs, outputs, parameters or resources, add `with:` to the last line
+and define them e.g.:
+
+```snakemake
+use rule gwas from np_gwas_module with:
+    output:
+        assoc_linear="gwas/chr{chromosome}.assoc.linear",
+        adjusted="gwas/chr{chromosome}.assoc.linear.adjusted",
+        log="gwas/chr{chromosome}.log"
+```
+
 * Please include the `container: ` line, and invoke apptainer when
   executing this workflow.
 * Update the GitHub tag to the appropriate version.
@@ -59,6 +55,7 @@ pheno: data/covar.txt
 pheno_name: bps
 missing_pheno: -9
 mem_mib: 2000
+additional_plink_args: "--noweb"
 covar_names:
   - age_at_death
   - sex
@@ -67,6 +64,9 @@ covar_names:
   - PCn
 ```
 
+* _Unless the user supplies inputs, outputs or parameters via
+  `use rule ... with:`, the imported rule will expect all of the previous items
+  to be defined in the configuration file._
 * No multi-thread computations are invoked. That is because rule `gwas` is a
   single-thread operation, and parallelization is handled by the Snakemake
   meta-structure via wildcard expansion, i.e. seperate jobs are created for
@@ -74,3 +74,6 @@ covar_names:
   be run in parallel if threads are available.
 * Each study may have a different number of PCs to include, and variable names
   may be different.
+* `additional_plink_args` will be passed verbatim to PLINK. It can be
+  empty (i.e. `""`), but the parameter must be defined in order for Snakemake's
+  shell expansion to work.

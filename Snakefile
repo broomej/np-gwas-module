@@ -12,9 +12,9 @@ rule gwas:
         additional_args=config.get("additional_plink_args", ""),
         plink_exe=config["plink_exe"],
     output:
-        assoc_linear="results/chr{chromosome}.assoc.linear",
-        adjusted="results/chr{chromosome}.assoc.linear.adjusted",
-        log="results/chr{chromosome}.log"
+        assoc_linear="results/gwas/chr{chromosome}.assoc.linear",
+        adjusted="results/gwas/chr{chromosome}.assoc.linear.adjusted",
+        log="results/gwas/chr{chromosome}.log"
     shell:
         """
         {params.plink_exe} \
