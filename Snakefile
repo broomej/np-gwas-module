@@ -1,41 +1,4 @@
-configfile: "config.yaml"
-container: "docker://broome/genetics-tools:ACT-ROSMAP-NACC-meta"
-
-COVAR_NAMES = ",".join(config.get("covar_names", []))
-# Hard-coded args common across all study-level GWAS. Use relatively relaxed
-# thresholds here; stricter filtering can be done before meta-analysis.
-ADDITIONAL_ARGS = "--linear hide-covar --adjust --ci 0.95 --geno 0.1 --maf 0.01 --noweb"
-# Defaults to `plink` because that is the name of the executable in the
-# container, but it may be `plink1.9` on some systems. PLINK v1.07 is not
-# supported, not tested on PLINK v2.0.
-plink_exe = config.get("plink_exe", "plink")
-CHROMOSOMES = [str(i) for i in range(1, 23)]
-
-rule all:
-    input:
-        assoc_linear=expand("results/chr{chr_num}.assoc.linear", chr_num=CHROMOSOMES),
-        adjusted=expand("results/chr{chr_num}.assoc.linear.adjusted", chr_num=CHROMOSOMES),
-        log=expand("results/chr{chr_num}.log", chr_num=CHROMOSOMES),
-
 rule gwas:
-    threads: 1
-    resources:
-        mem_mib=config.get("mem_mib", 6000),
-    input:
-        bed=config["bed"],
-        bim=config["bim"],
-        fam=config["fam"],
-        covar=config["covar_file"],
-        pheno=config["pheno"],
-    output:
-        assoc_linear="results/chr{chr_num}.assoc.linear",
-        adjusted="results/chr{chr_num}.assoc.linear.adjusted",
-        log="results/chr{chr_num}.log",
-    params:
-        additional_args=ADDITIONAL_ARGS,
-        covar_names=COVAR_NAMES,
-        missing_pheno=config.get("missing_pheno", "-9"),
-        pheno_name=config["pheno_name"],
     shell:
         """
         {plink_exe} \
@@ -46,8 +9,13 @@ rule gwas:
             --pheno-name {params.pheno_name} \
             --covar {input.covar} \
             --covar-name {COVAR_NAMES} \
-            {params.additional_args} \
             --missing-phenotype {params.missing_pheno} \
+            {params.additional_args} \
+            --linear hide-covar \
+            --adjust \
+            --ci 0.95 \
+            --geno 0.1 \
+            --maf 0.01
             --chr {wildcards.chr_num} \
             --out results/chr{wildcards.chr_num}
         """
