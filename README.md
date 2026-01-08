@@ -13,37 +13,26 @@ Here is is sample Snakemake code to include in your workflow:
 container: "docker://broome/genetics-tools:ACT-ROSMAP-NACC-meta"
 configfile: "config/gwas.yaml"
 
-module np_gwas_module:
-    snakefile: github("broomej/np-gwas-module", path="Snakefile", tag = "v1")
-
 CHROMOSOMES = [str(i) for i in range(1, 23)] + ["X"]
 module np_gwas_module:
-    snakefile: github("broomej/np-gwas-module", path="Snakefile", branch = "main")
+    snakefile: github("broomej/np-gwas-module", path="Snakefile", tag = "v0.2")
     config: config
 
 use rule gwas from np_gwas_module
 ```
 
-To supply inputs, outputs, parameters or resources, add `with:` to the last line
-and define them e.g.:
-
-```snakemake
-use rule gwas from np_gwas_module with:
-    output:
-        assoc_linear="gwas/chr{chromosome}.assoc.linear",
-        adjusted="gwas/chr{chromosome}.assoc.linear.adjusted",
-        log="gwas/chr{chromosome}.log"
-```
-
 * Please include the `container: ` line, and invoke apptainer when
   executing this workflow.
 * Update the GitHub tag to the appropriate version.
+* The plink command will always output the files to `gwas/chr{chromosome}.*`.
+  Do not override the default outputs.
+* Inputs and parameters can be over-ridden in the Snakefile, but they can also
+  all be defined in the config. As a best-practice, do not override them.
 
 ### Configuration
 
 Include a configuration file following Snakemake conventions, `config/gwas.yaml`
-in this example. Study-specific parameters should go inside the configuration
-file. Here is a sample:
+in this example. Here is a sample:
 
 ```yaml
 bed: data/np.bed
@@ -54,7 +43,6 @@ plink_exe: plink
 pheno: data/covar.txt
 pheno_name: bps
 missing_pheno: -9
-mem_mib: 2000
 additional_plink_args: "--noweb"
 covar_names:
   - age_at_death
@@ -64,7 +52,7 @@ covar_names:
   - PCn
 ```
 
-* _Unless the user supplies inputs, outputs or parameters via
+* _Unless the user supplies inputs or parameters via
   `use rule ... with:`, the imported rule will expect all of the previous items
   to be defined in the configuration file._
 * No multi-thread computations are invoked. That is because rule `gwas` is a

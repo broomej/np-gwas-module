@@ -33,5 +33,5 @@ rule gwas:
             --geno 0.1 \
             --maf 0.01 \
             --chr {wildcards.chromosome} \
-            --out results/chr{wildcards.chromosome}
+            --out results/gwas/chr{wildcards.chromosome}
         """
