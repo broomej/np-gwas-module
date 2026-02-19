@@ -19,8 +19,6 @@ rule gwas:
             --bed {input.bed} \
             --bim {input.bim} \
             --fam {input.fam} \
-            --pheno {input.pheno} \
-            --pheno-name {params.pheno_name} \
             --covar {input.covar} \
             --covar-name {params.covar_names} \
             --missing-phenotype {params.missing_pheno} \
