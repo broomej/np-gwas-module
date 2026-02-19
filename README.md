@@ -9,6 +9,7 @@ not recommended to import this as a general GWAS rule.
 
 Here is is sample Snakemake code to include in your workflow:
 
+
 ```snakemake
 container: "docker://broome/genetics-tools:ACT-ROSMAP-NACC-meta"
 configfile: "config/gwas.yaml"
