@@ -4,9 +4,7 @@ rule gwas:
         bim=config["bim"],
         fam=config["fam"],
         covar=config["covar_file"],
-        pheno=config["pheno"],
     params:
-        pheno_name=config["pheno_name"],
         covar_names=",".join(config.get("covar_names", [])),
         missing_pheno=config["missing_pheno"],
         additional_args=config.get("additional_plink_args", ""),
