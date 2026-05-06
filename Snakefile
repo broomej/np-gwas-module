@@ -1,9 +1,4 @@
 rule gwas:
-    input:
-        bed=config["bed"],
-        bim=config["bim"],
-        fam=config["fam"],
-        covar=config["covar_file"],
     params:
         covar_names=",".join(config.get("covar_names", [])),
         missing_pheno=config["missing_pheno"],
